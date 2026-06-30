@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Space Invaders - Colégio Estadual Dom Carlos</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="cabecalho">
+    <p class="instituicao">Colégio estadual Dom Carlos</p>
+    <h1>Space Invaders</h1>
+    <p class="curso">Curso técnico de desenvolvimento de sistemas</p>
+  </header>
+
+  <main class="container-jogo">
+    <section class="painel" aria-label="Informações da partida">
+      <div><span>Fase</span><strong id="hudFase">1</strong></div>
+      <div><span>Pontos</span><strong id="hudPontos">0</strong></div>
+      <div><span>Vidas</span><strong id="hudVidas">3</strong></div>
+      <div><span>Escudos</span><strong id="hudEscudos">100%</strong></div>
+    </section>
+
+    <section class="area-canvas">
+      <canvas id="gameCanvas" width="960" height="600" aria-label="Jogo Space Invaders"></canvas>
+
+      <div id="overlay" class="overlay">
+        <div class="cartao">
+          <h2 id="overlayTitulo">Space Invaders</h2>
+          <p id="overlayTexto">Defenda a Terra em 3 fases. Destrua os invasores e derrote a nave-mãe.</p>
+          <button id="btnComecar" type="button">Começar jogo</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="instrucoes">
+      <h2>Controles</h2>
+      <p><kbd>←</kbd> <kbd>→</kbd> ou <kbd>A</kbd> <kbd>D</kbd> para mover. <kbd>Espaço</kbd> para atirar. <kbd>P</kbd> pausa. <kbd>R</kbd> reinicia.</p>
+      <p>No celular, use os botões abaixo.</p>
+      <div class="controles-touch" aria-label="Controles para celular">
+        <button id="btnEsquerda" type="button">◀</button>
+        <button id="btnTiro" type="button">●</button>
+        <button id="btnDireita" type="button">▶</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <p>Projeto em HTML, CSS e JavaScript puro.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
