@@ -21,45 +21,106 @@
     {
       numero: 1,
       nome: 'Fase 1 - Primeira Invasão',
-      descricao: 'Invasores básicos se aproximam em formação clássica.',
+      descricao: 'Formação clássica: mire com calma e proteja os escudos.',
       linhas: 4,
       colunas: 8,
       velocidade: 38,
       queda: 20,
-      tiroInimigo: 0.58,
-      chancePowerUp: 0.12,
+      tiroInimigo: 0.56,
+      chancePowerUp: 0.13,
       pontos: 80,
       hpBase: 1,
+      eliteLinhas: 0,
+      blindadoLinhas: 0,
+      amplitude: 0,
       cor: '#65ff8f'
     },
     {
       numero: 2,
       nome: 'Fase 2 - Chuva Cósmica',
-      descricao: 'Mais naves, mais velocidade e tiros em diagonal.',
+      descricao: 'Os invasores começam a atirar em diagonal.',
       linhas: 5,
       colunas: 9,
       velocidade: 52,
       queda: 22,
-      tiroInimigo: 0.92,
+      tiroInimigo: 0.88,
       chancePowerUp: 0.16,
       pontos: 110,
       hpBase: 1,
+      eliteLinhas: 1,
+      blindadoLinhas: 0,
+      amplitude: 3.5,
       cor: '#45d6ff'
     },
     {
       numero: 3,
-      nome: 'Fase 3 - Nave-Mãe',
-      descricao: 'Sobreviva à tropa final e destrua a nave-mãe.',
-      linhas: 4,
+      nome: 'Fase 3 - Enxame Vermelho',
+      descricao: 'Naves blindadas aguentam mais disparos.',
+      linhas: 5,
       colunas: 10,
-      velocidade: 65,
+      velocidade: 64,
+      queda: 23,
+      tiroInimigo: 1.02,
+      chancePowerUp: 0.18,
+      pontos: 135,
+      hpBase: 1,
+      eliteLinhas: 1,
+      blindadoLinhas: 2,
+      amplitude: 4.6,
+      cor: '#ff5f7a'
+    },
+    {
+      numero: 4,
+      nome: 'Fase 4 - Cinturão de Asteroides',
+      descricao: 'O ataque fica mais rápido e as formações oscilam.',
+      linhas: 6,
+      colunas: 10,
+      velocidade: 74,
       queda: 24,
       tiroInimigo: 1.12,
-      chancePowerUp: 0.18,
-      pontos: 140,
+      chancePowerUp: 0.20,
+      pontos: 155,
       hpBase: 2,
+      eliteLinhas: 1,
+      blindadoLinhas: 1,
+      amplitude: 6.2,
+      cor: '#ffe066'
+    },
+    {
+      numero: 5,
+      nome: 'Fase 5 - Guarda da Nave-Mãe',
+      descricao: 'A tropa de elite protege a entrada do chefão.',
+      linhas: 5,
+      colunas: 11,
+      velocidade: 86,
+      queda: 25,
+      tiroInimigo: 1.26,
+      chancePowerUp: 0.22,
+      pontos: 180,
+      hpBase: 2,
+      eliteLinhas: 2,
+      blindadoLinhas: 2,
+      amplitude: 7.2,
+      cor: '#45d6ff'
+    },
+    {
+      numero: 6,
+      nome: 'Fase 6 - Fortaleza Alienígena',
+      descricao: 'Elimine a escolta e enfrente o chefão final.',
+      linhas: 5,
+      colunas: 11,
+      velocidade: 92,
+      queda: 26,
+      tiroInimigo: 1.36,
+      chancePowerUp: 0.24,
+      pontos: 205,
+      hpBase: 2,
+      eliteLinhas: 2,
+      blindadoLinhas: 2,
+      amplitude: 8.2,
       chefe: true,
-      chefeHp: 72,
+      chefeHp: 180,
+      chefeNome: 'CHEFÃO - NAVE IMPERADORA',
       cor: '#ff5f7a'
     }
   ];
@@ -86,6 +147,10 @@
       direita: false,
       tiro: false
     },
+    toque: {
+      pointerId: null,
+      alvoX: null
+    },
     audio: null
   };
 
@@ -95,7 +160,7 @@
       y: H - 64,
       w: 52,
       h: 34,
-      velocidade: 420,
+      velocidade: 430,
       recarga: 0,
       atrasoTiro: 0.24,
       invulneravel: 0,
@@ -106,11 +171,11 @@
 
   function criarEstrelas() {
     estado.estrelas = [];
-    for (let i = 0; i < 95; i += 1) {
+    for (let i = 0; i < 105; i += 1) {
       estado.estrelas.push({
         x: Math.random() * W,
         y: Math.random() * H,
-        r: Math.random() * 1.6 + 0.35,
+        r: Math.random() * 1.7 + 0.35,
         v: Math.random() * 34 + 16,
         brilho: Math.random() * 0.6 + 0.35
       });
@@ -118,7 +183,7 @@
   }
 
   function faseAtual() {
-    return FASES[estado.fase - 1];
+    return FASES[estado.fase - 1] || FASES[0];
   }
 
   function mostrarOverlay(titulo, texto, botao) {
@@ -136,8 +201,17 @@
     return String(valor).padStart(5, '0');
   }
 
+  function limparEntradas() {
+    estado.teclado.esquerda = false;
+    estado.teclado.direita = false;
+    estado.teclado.tiro = false;
+    estado.toque.pointerId = null;
+    estado.toque.alvoX = null;
+    document.querySelectorAll('.controles-touch button').forEach((botao) => botao.classList.remove('pressionado'));
+  }
+
   function atualizarHud() {
-    hudFase.textContent = estado.fase;
+    hudFase.textContent = `${estado.fase}/${FASES.length}`;
     hudPontos.textContent = formatarPontos(estado.pontos);
     hudVidas.textContent = estado.vidas;
 
@@ -146,6 +220,7 @@
   }
 
   function iniciarJogo() {
+    limparEntradas();
     estado.tela = 'jogando';
     estado.fase = 1;
     estado.pontos = 0;
@@ -166,6 +241,8 @@
     estado.particulas = [];
     estado.chefe = null;
     estado.banner = 2.4;
+    estado.toque.alvoX = null;
+    estado.toque.pointerId = null;
     estado.jogador.x = W / 2 - estado.jogador.w / 2;
     estado.jogador.invulneravel = 1.5;
     criarInimigos();
@@ -177,27 +254,32 @@
     const fase = faseAtual();
     estado.inimigos = [];
 
-    const espacamentoX = 74;
-    const espacamentoY = 54;
+    const espacamentoX = Math.min(74, (W - 150) / Math.max(1, fase.colunas - 1));
+    const espacamentoY = fase.linhas >= 6 ? 46 : 52;
     const larguraTotal = (fase.colunas - 1) * espacamentoX;
     const inicioX = W / 2 - larguraTotal / 2;
-    const inicioY = 72;
+    const inicioY = 70;
 
     for (let linha = 0; linha < fase.linhas; linha += 1) {
       for (let coluna = 0; coluna < fase.colunas; coluna += 1) {
-        const elite = estado.fase >= 2 && linha === 0;
-        const blindado = estado.fase === 3 && linha < 2;
+        const elite = linha < fase.eliteLinhas;
+        const blindado = linha < fase.blindadoLinhas || (fase.numero >= 5 && linha < 3 && coluna % 3 === 0);
+        const assalto = fase.numero >= 4 && linha === fase.linhas - 1;
+        const comandante = elite && blindado;
+        const hpMax = fase.hpBase + (elite ? 1 : 0) + (blindado ? 1 : 0) + (comandante ? 1 : 0);
+        const tipo = comandante ? 'comandante' : (elite ? 'elite' : (blindado ? 'blindado' : (assalto ? 'assalto' : 'normal')));
+
         estado.inimigos.push({
           x: inicioX + coluna * espacamentoX,
           y: inicioY + linha * espacamentoY,
-          w: elite ? 42 : 38,
-          h: elite ? 30 : 28,
+          w: elite || comandante ? 42 : (blindado ? 44 : 38),
+          h: elite || comandante ? 30 : 28,
           coluna,
           linha,
-          hp: fase.hpBase + (elite ? 1 : 0) + (blindado ? 1 : 0),
-          hpMax: fase.hpBase + (elite ? 1 : 0) + (blindado ? 1 : 0),
-          pontos: fase.pontos + linha * 15 + (elite ? 70 : 0),
-          tipo: elite ? 'elite' : (blindado ? 'blindado' : 'normal'),
+          hp: hpMax,
+          hpMax,
+          pontos: fase.pontos + linha * 16 + (elite ? 70 : 0) + (blindado ? 60 : 0) + (comandante ? 90 : 0),
+          tipo,
           semente: Math.random() * Math.PI * 2
         });
       }
@@ -236,26 +318,29 @@
   }
 
   function proximaFase() {
-    if (estado.fase >= 3) {
+    if (estado.fase >= FASES.length) {
       vencerJogo();
       return;
     }
 
     estado.fase += 1;
-    estado.vidas = Math.min(5, estado.vidas + 1);
+    estado.vidas = Math.min(7, estado.vidas + 1);
     carregarFase(estado.fase);
   }
 
   function vencerJogo() {
     estado.tela = 'vitoria';
+    limparEntradas();
     tocarSom(560, 0.16, 'triangle');
     setTimeout(() => tocarSom(760, 0.16, 'triangle'), 160);
     setTimeout(() => tocarSom(940, 0.24, 'triangle'), 330);
-    mostrarOverlay('Vitória!', `Você concluiu as 3 fases com ${formatarPontos(estado.pontos)} pontos.`, 'Jogar novamente');
+    mostrarOverlay('Vitória!', `Você concluiu as ${FASES.length} fases e derrotou o chefão com ${formatarPontos(estado.pontos)} pontos.`, 'Jogar novamente');
   }
 
   function fimDeJogo() {
+    if (estado.tela === 'fim') return;
     estado.tela = 'fim';
+    limparEntradas();
     tocarSom(120, 0.35, 'sawtooth');
     mostrarOverlay('Fim de jogo', `Pontuação final: ${formatarPontos(estado.pontos)}. Pressione R ou clique para tentar novamente.`, 'Tentar novamente');
   }
@@ -263,6 +348,7 @@
   function pausarOuContinuar() {
     if (estado.tela === 'jogando') {
       estado.tela = 'pausado';
+      limparEntradas();
       mostrarOverlay('Pausado', 'Pressione P para continuar defendendo a Terra.', 'Continuar');
     } else if (estado.tela === 'pausado') {
       estado.tela = 'jogando';
@@ -314,8 +400,9 @@
   }
 
   function atualizarEstrelas(dt) {
+    const multiplicador = estado.tela === 'jogando' ? 1 + estado.fase * 0.04 : 1;
     estado.estrelas.forEach((estrela) => {
-      estrela.y += estrela.v * dt;
+      estrela.y += estrela.v * multiplicador * dt;
       if (estrela.y > H) {
         estrela.y = -4;
         estrela.x = Math.random() * W;
@@ -331,13 +418,21 @@
     if (estado.teclado.esquerda) direcao -= 1;
     if (estado.teclado.direita) direcao += 1;
 
-    jogador.x += direcao * jogador.velocidade * dt;
+    if (direcao !== 0) {
+      jogador.x += direcao * jogador.velocidade * dt;
+    } else if (estado.toque.alvoX !== null) {
+      const alvo = limitar(estado.toque.alvoX - jogador.w / 2, 18, W - jogador.w - 18);
+      const diferenca = alvo - jogador.x;
+      const passoMaximo = jogador.velocidade * 1.55 * dt;
+      jogador.x += limitar(diferenca, -passoMaximo, passoMaximo);
+    }
+
     jogador.x = limitar(jogador.x, 18, W - jogador.w - 18);
     jogador.recarga = Math.max(0, jogador.recarga - dt);
     jogador.invulneravel = Math.max(0, jogador.invulneravel - dt);
     jogador.tiroTriplo = Math.max(0, jogador.tiroTriplo - dt);
     jogador.tiroRapido = Math.max(0, jogador.tiroRapido - dt);
-    jogador.atrasoTiro = jogador.tiroRapido > 0 ? 0.115 : 0.24;
+    jogador.atrasoTiro = jogador.tiroRapido > 0 ? 0.105 : 0.23;
 
     if (estado.teclado.tiro && jogador.recarga <= 0) {
       atirarJogador();
@@ -347,9 +442,11 @@
 
   function atirarJogador() {
     const jogador = estado.jogador;
+    if (!jogador || estado.tela !== 'jogando') return;
+
     const centro = jogador.x + jogador.w / 2;
     const y = jogador.y - 12;
-    const tiros = jogador.tiroTriplo > 0 ? [-12, 0, 12] : [0];
+    const tiros = jogador.tiroTriplo > 0 ? [-14, 0, 14] : [0];
 
     tiros.forEach((offset, indice) => {
       estado.balas.push({
@@ -357,8 +454,8 @@
         y,
         w: 6,
         h: 18,
-        vx: indice === 0 && tiros.length === 3 ? -55 : (indice === 2 ? 55 : 0),
-        vy: -670,
+        vx: indice === 0 && tiros.length === 3 ? -58 : (indice === 2 ? 58 : 0),
+        vy: -690,
         dano: 1,
         cor: '#65ff8f'
       });
@@ -381,8 +478,8 @@
     colisaoBalasJogadorComAlvos();
     colisaoBalasInimigas();
 
-    estado.balas = estado.balas.filter((bala) => !bala.morta && bala.y + bala.h > -20 && bala.x > -40 && bala.x < W + 40);
-    estado.balasInimigas = estado.balasInimigas.filter((bala) => !bala.morta && bala.y < H + 40 && bala.x > -50 && bala.x < W + 50);
+    estado.balas = estado.balas.filter((bala) => !bala.morta && bala.y + bala.h > -20 && bala.x > -50 && bala.x < W + 50);
+    estado.balasInimigas = estado.balasInimigas.filter((bala) => !bala.morta && bala.y < H + 70 && bala.x > -80 && bala.x < W + 80);
   }
 
   function colisaoBalasJogadorComAlvos() {
@@ -392,7 +489,7 @@
       if (estado.chefe && retangulosColidem(bala, estado.chefe)) {
         estado.chefe.hp -= bala.dano;
         bala.morta = true;
-        estado.pontos += 18;
+        estado.pontos += 22;
         criarExplosao(bala.x, bala.y, '#ff5f7a', 8);
         tocarSom(240, 0.045, 'square', 0.018);
         if (estado.chefe.hp <= 0) {
@@ -406,7 +503,7 @@
 
         inimigo.hp -= bala.dano;
         bala.morta = true;
-        criarExplosao(bala.x, bala.y, inimigo.tipo === 'elite' ? '#45d6ff' : '#65ff8f', 10);
+        criarExplosao(bala.x, bala.y, corDoInimigo(inimigo), 10);
 
         if (inimigo.hp <= 0) {
           inimigo.morto = true;
@@ -432,9 +529,9 @@
 
       for (const bloco of estado.barreiras) {
         if (retangulosColidem(bala, bloco)) {
-          bloco.hp -= 1;
+          bloco.hp -= bala.tipo === 'laser' ? 2 : 1;
           bala.morta = true;
-          criarExplosao(bala.x, bala.y, '#45d6ff', 4);
+          criarExplosao(bala.x, bala.y, bala.tipo === 'laser' ? '#ffe066' : '#45d6ff', 4);
           break;
         }
       }
@@ -461,21 +558,26 @@
 
     estado.jogador.invulneravel = 1.9;
     estado.jogador.x = W / 2 - estado.jogador.w / 2;
+    estado.toque.alvoX = null;
   }
 
   function atualizarInimigos(dt) {
     if (estado.inimigos.length === 0) return;
 
     const fase = faseAtual();
-    const aceleracao = (fase.linhas * fase.colunas - estado.inimigos.length) * 0.75;
+    const totalInicial = fase.linhas * fase.colunas;
+    const aceleracao = Math.max(0, totalInicial - estado.inimigos.length) * (fase.numero >= 4 ? 0.9 : 0.72);
     const velocidade = fase.velocidade + aceleracao;
     let bateuNaBorda = false;
 
     estado.inimigos.forEach((inimigo) => {
-      inimigo.x += estado.direcaoInimiga * velocidade * dt;
-      if (estado.fase >= 2) {
-        inimigo.y += Math.sin(estado.tempo * 3 + inimigo.semente) * 3.5 * dt;
+      const impulsoAssalto = inimigo.tipo === 'assalto' ? 1.18 : 1;
+      inimigo.x += estado.direcaoInimiga * velocidade * impulsoAssalto * dt;
+
+      if (fase.amplitude > 0) {
+        inimigo.y += Math.sin(estado.tempo * (2.6 + fase.numero * 0.16) + inimigo.semente) * fase.amplitude * dt;
       }
+
       if (inimigo.x < 24 || inimigo.x + inimigo.w > W - 24) {
         bateuNaBorda = true;
       }
@@ -493,6 +595,11 @@
     if (Math.random() < fase.tiroInimigo * dt) {
       const atirador = escolherAtirador();
       if (atirador) atirarInimigo(atirador);
+    }
+
+    if (fase.numero >= 4 && Math.random() < 0.26 * dt) {
+      const atiradorExtra = escolherAtirador();
+      if (atiradorExtra) atirarInimigo(atiradorExtra, true);
     }
 
     const invasorChegou = estado.inimigos.some((inimigo) => inimigo.y + inimigo.h >= estado.jogador.y - 12);
@@ -514,69 +621,93 @@
     return candidatos[Math.floor(Math.random() * candidatos.length)];
   }
 
-  function atirarInimigo(inimigo) {
-    const diagonal = estado.fase >= 2 ? (Math.random() - 0.5) * 85 : 0;
+  function atirarInimigo(inimigo, tiroExtra = false) {
+    const fase = faseAtual();
+    const abertura = fase.numero >= 5 ? 130 : (fase.numero >= 2 ? 90 : 0);
+    const diagonal = abertura ? (Math.random() - 0.5) * abertura : 0;
+    const velocidade = 230 + fase.numero * 32 + (tiroExtra ? 25 : 0);
     estado.balasInimigas.push({
       x: inimigo.x + inimigo.w / 2 - 4,
       y: inimigo.y + inimigo.h,
       w: 8,
       h: 16,
       vx: diagonal,
-      vy: 230 + estado.fase * 32,
-      cor: estado.fase === 3 ? '#ff5f7a' : '#45d6ff'
+      vy: velocidade,
+      tipo: 'inimigo',
+      cor: fase.numero >= 3 ? '#ff5f7a' : '#45d6ff'
     });
   }
 
   function criarChefe() {
     const fase = faseAtual();
     estado.chefe = {
-      x: W / 2 - 96,
-      y: 52,
-      w: 192,
-      h: 74,
+      x: W / 2 - 122,
+      y: 50,
+      w: 244,
+      h: 88,
       hp: fase.chefeHp,
       hpMax: fase.chefeHp,
       direcao: 1,
-      recarga: 0.65,
+      recarga: 0.62,
+      recargaLaser: 2.8,
+      reforco: 4.6,
       pulso: 0
     };
-    estado.banner = 2.2;
+    estado.banner = 2.3;
     estado.balasInimigas = [];
-    tocarSom(78, 0.6, 'sawtooth', 0.035);
+    repararEscudos();
+    tocarSom(78, 0.6, 'sawtooth', 0.04);
   }
 
   function atualizarChefe(dt) {
     const chefe = estado.chefe;
     if (!chefe) return;
 
+    const porcentagemVida = Math.max(0, chefe.hp / chefe.hpMax);
     chefe.pulso += dt;
-    chefe.x += chefe.direcao * (95 + (1 - chefe.hp / chefe.hpMax) * 90) * dt;
+    chefe.y = 48 + Math.sin(estado.tempo * 1.35) * 8;
+    chefe.x += chefe.direcao * (105 + (1 - porcentagemVida) * 130) * dt;
 
-    if (chefe.x < 26 || chefe.x + chefe.w > W - 26) {
+    if (chefe.x < 24 || chefe.x + chefe.w > W - 24) {
       chefe.direcao *= -1;
-      chefe.x = limitar(chefe.x, 26, W - chefe.w - 26);
+      chefe.x = limitar(chefe.x, 24, W - chefe.w - 24);
     }
 
     chefe.recarga -= dt;
+    chefe.recargaLaser -= dt;
+    chefe.reforco -= dt;
+
     if (chefe.recarga <= 0) {
       atirarChefe();
-      chefe.recarga = chefe.hp < chefe.hpMax * 0.45 ? 0.78 : 1.05;
+      chefe.recarga = porcentagemVida < 0.35 ? 0.52 : (porcentagemVida < 0.68 ? 0.72 : 0.94);
+    }
+
+    if (chefe.recargaLaser <= 0) {
+      atirarLaserChefe();
+      chefe.recargaLaser = porcentagemVida < 0.4 ? 2.15 : 3.15;
+    }
+
+    if (porcentagemVida < 0.65 && chefe.reforco <= 0 && estado.inimigos.length < 7) {
+      criarReforcoDoChefe();
+      chefe.reforco = porcentagemVida < 0.35 ? 5.0 : 6.8;
     }
   }
 
   function atirarChefe() {
     const chefe = estado.chefe;
     const centro = chefe.x + chefe.w / 2;
-    const tiros = chefe.hp < chefe.hpMax * 0.45 ? [-130, -65, 0, 65, 130] : [-90, 0, 90];
+    const porcentagemVida = chefe.hp / chefe.hpMax;
+    const tiros = porcentagemVida < 0.35 ? [-180, -120, -60, 0, 60, 120, 180] : (porcentagemVida < 0.68 ? [-135, -70, 0, 70, 135] : [-95, 0, 95]);
 
-    tiros.forEach((vx) => {
+    tiros.forEach((vx, indice) => {
       estado.balasInimigas.push({
-        x: centro - 5,
+        x: centro - 5 + Math.sin(estado.tempo * 5 + indice) * 10,
         y: chefe.y + chefe.h - 4,
         w: 10,
         h: 20,
         vx,
-        vy: 270,
+        vy: porcentagemVida < 0.35 ? 310 : 285,
+        tipo: 'chefe',
         cor: '#ff5f7a'
       });
     });
@@ -584,10 +715,63 @@
     tocarSom(150, 0.09, 'sawtooth', 0.025);
   }
 
+  function atirarLaserChefe() {
+    const chefe = estado.chefe;
+    const porcentagemVida = chefe.hp / chefe.hpMax;
+    const centro = chefe.x + chefe.w / 2;
+    const offsets = porcentagemVida < 0.45 ? [-96, 0, 96] : [-72, 72];
+
+    offsets.forEach((offset) => {
+      estado.balasInimigas.push({
+        x: centro + offset - 8,
+        y: chefe.y + chefe.h - 8,
+        w: 16,
+        h: 56,
+        vx: offset * 0.12,
+        vy: 330,
+        tipo: 'laser',
+        cor: '#ffe066'
+      });
+    });
+
+    tocarSom(96, 0.16, 'sawtooth', 0.03);
+  }
+
+  function criarReforcoDoChefe() {
+    const chefe = estado.chefe;
+    if (!chefe) return;
+
+    const quantidade = chefe.hp < chefe.hpMax * 0.35 ? 5 : 3;
+    const inicio = chefe.x + chefe.w / 2 - (quantidade - 1) * 34 / 2;
+
+    for (let i = 0; i < quantidade; i += 1) {
+      estado.inimigos.push({
+        x: limitar(inicio + i * 34, 30, W - 70),
+        y: chefe.y + chefe.h + 20 + Math.random() * 18,
+        w: 34,
+        h: 25,
+        coluna: 100 + i,
+        linha: 10,
+        hp: 2,
+        hpMax: 2,
+        pontos: 260,
+        tipo: 'assalto',
+        semente: Math.random() * Math.PI * 2
+      });
+    }
+
+    criarExplosao(chefe.x + chefe.w / 2, chefe.y + chefe.h, '#45d6ff', 18);
+  }
+
   function destruirChefe() {
-    criarExplosao(estado.chefe.x + estado.chefe.w / 2, estado.chefe.y + estado.chefe.h / 2, '#ffe066', 110);
+    if (!estado.chefe) return;
+    criarExplosao(estado.chefe.x + estado.chefe.w / 2, estado.chefe.y + estado.chefe.h / 2, '#ffe066', 150);
+    criarExplosao(estado.chefe.x + estado.chefe.w / 2 - 70, estado.chefe.y + 38, '#ff5f7a', 70);
+    criarExplosao(estado.chefe.x + estado.chefe.w / 2 + 70, estado.chefe.y + 38, '#45d6ff', 70);
     estado.chefe = null;
-    estado.pontos += 2500;
+    estado.inimigos = [];
+    estado.balasInimigas = [];
+    estado.pontos += 5000;
     vencerJogo();
   }
 
@@ -622,6 +806,7 @@
 
   function atualizarPowerUps(dt) {
     const jogador = estado.jogador;
+    if (!jogador) return;
 
     estado.powerUps.forEach((powerUp) => {
       powerUp.y += powerUp.vy * dt;
@@ -636,9 +821,9 @@
 
   function aplicarPowerUp(tipo) {
     const jogador = estado.jogador;
-    if (tipo === 'rapido') jogador.tiroRapido = 7;
-    if (tipo === 'triplo') jogador.tiroTriplo = 7;
-    if (tipo === 'vida') estado.vidas = Math.min(5, estado.vidas + 1);
+    if (tipo === 'rapido') jogador.tiroRapido = 7.5;
+    if (tipo === 'triplo') jogador.tiroTriplo = 7.5;
+    if (tipo === 'vida') estado.vidas = Math.min(7, estado.vidas + 1);
     if (tipo === 'escudo') repararEscudos();
     tocarSom(620, 0.12, 'triangle', 0.035);
   }
@@ -676,21 +861,21 @@
       });
     });
 
-    embaralhar(candidatos).slice(0, 34).forEach((bloco) => estado.barreiras.push(bloco));
+    embaralhar(candidatos).slice(0, 38).forEach((bloco) => estado.barreiras.push(bloco));
   }
 
   function criarExplosao(x, y, cor, quantidade) {
     for (let i = 0; i < quantidade; i += 1) {
       const angulo = Math.random() * Math.PI * 2;
-      const velocidade = Math.random() * 150 + 40;
+      const velocidade = Math.random() * 170 + 38;
       estado.particulas.push({
         x,
         y,
         vx: Math.cos(angulo) * velocidade,
         vy: Math.sin(angulo) * velocidade,
-        vida: Math.random() * 0.45 + 0.25,
-        vidaMax: 0.7,
-        r: Math.random() * 3 + 1,
+        vida: Math.random() * 0.5 + 0.25,
+        vidaMax: 0.75,
+        r: Math.random() * 3.2 + 1,
         cor
       });
     }
@@ -719,6 +904,7 @@
   }
 
   function desenharFundo() {
+    const fase = faseAtual();
     const gradiente = ctx.createLinearGradient(0, 0, 0, H);
     gradiente.addColorStop(0, '#050816');
     gradiente.addColorStop(0.55, '#070b20');
@@ -742,6 +928,15 @@
       ctx.moveTo(0, y);
       ctx.lineTo(W, y);
       ctx.stroke();
+    }
+
+    if (estado.tela === 'jogando') {
+      ctx.globalAlpha = 0.12;
+      ctx.fillStyle = fase.cor;
+      ctx.beginPath();
+      ctx.arc(W - 88, 74, 54 + Math.sin(estado.tempo * 2) * 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
     }
   }
 
@@ -782,9 +977,20 @@
     ctx.globalAlpha = 1;
   }
 
+  function corDoInimigo(inimigo) {
+    const cores = {
+      normal: '#65ff8f',
+      elite: '#45d6ff',
+      blindado: '#ff5f7a',
+      assalto: '#ffe066',
+      comandante: '#d86bff'
+    };
+    return cores[inimigo.tipo] || cores.normal;
+  }
+
   function desenharInimigos() {
     estado.inimigos.forEach((i) => {
-      const corPrincipal = i.tipo === 'elite' ? '#45d6ff' : (i.tipo === 'blindado' ? '#ff5f7a' : '#65ff8f');
+      const corPrincipal = corDoInimigo(i);
       const oscilacao = Math.sin(estado.tempo * 4 + i.semente) * 2;
 
       ctx.save();
@@ -816,39 +1022,48 @@
     const c = estado.chefe;
     if (!c) return;
 
+    const fase = faseAtual();
+    const vida = Math.max(0, c.hp / c.hpMax);
     const pulso = Math.sin(c.pulso * 8) * 4;
     ctx.save();
     ctx.translate(c.x, c.y);
 
-    ctx.fillStyle = '#ff5f7a';
-    ctx.fillRect(18, 18, c.w - 36, c.h - 16);
-    ctx.fillRect(0, 34, c.w, 22);
-    ctx.fillRect(42, 0, c.w - 84, 26);
+    ctx.fillStyle = vida < 0.35 ? '#ff2f58' : '#ff5f7a';
+    ctx.fillRect(22, 20, c.w - 44, c.h - 18);
+    ctx.fillRect(0, 38, c.w, 24);
+    ctx.fillRect(48, 0, c.w - 96, 28);
+    ctx.fillRect(34, 62, 38, 18);
+    ctx.fillRect(c.w - 72, 62, 38, 18);
 
     ctx.fillStyle = '#45d6ff';
-    ctx.fillRect(70, 26, 18, 15);
-    ctx.fillRect(c.w - 88, 26, 18, 15);
+    ctx.fillRect(78, 28, 20, 16);
+    ctx.fillRect(c.w - 98, 28, 20, 16);
     ctx.fillStyle = '#ffe066';
     ctx.beginPath();
-    ctx.arc(c.w / 2, 36, 13 + pulso * 0.15, 0, Math.PI * 2);
+    ctx.arc(c.w / 2, 40, 16 + pulso * 0.18, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = '#02030a';
-    ctx.fillRect(18, 58, 26, 10);
-    ctx.fillRect(c.w - 44, 58, 26, 10);
+    ctx.strokeStyle = vida < 0.35 ? '#ffe066' : 'rgba(255,255,255,0.65)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(c.w / 2, 40, 28 + pulso * 0.4, 0, Math.PI * 2);
+    ctx.stroke();
 
+    ctx.fillStyle = '#02030a';
+    ctx.fillRect(22, 62, 30, 10);
+    ctx.fillRect(c.w - 52, 62, 30, 10);
     ctx.restore();
 
     ctx.fillStyle = 'rgba(255,255,255,0.18)';
-    ctx.fillRect(260, 18, 440, 12);
-    ctx.fillStyle = '#ff5f7a';
-    ctx.fillRect(260, 18, 440 * Math.max(0, c.hp / c.hpMax), 12);
+    ctx.fillRect(220, 18, 520, 14);
+    ctx.fillStyle = vida < 0.35 ? '#ffe066' : '#ff5f7a';
+    ctx.fillRect(220, 18, 520 * vida, 14);
     ctx.strokeStyle = 'rgba(255,255,255,0.45)';
-    ctx.strokeRect(260, 18, 440, 12);
+    ctx.strokeRect(220, 18, 520, 14);
     ctx.fillStyle = '#f4f7ff';
     ctx.font = 'bold 14px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('NAVE-MÃE', W / 2, 14);
+    ctx.fillText(fase.chefeNome || 'CHEFÃO FINAL', W / 2, 14);
   }
 
   function desenharBalas() {
@@ -863,8 +1078,14 @@
     estado.balasInimigas.forEach((b) => {
       ctx.fillStyle = b.cor;
       ctx.shadowColor = b.cor;
-      ctx.shadowBlur = 10;
-      ctx.fillRect(b.x, b.y, b.w, b.h);
+      ctx.shadowBlur = b.tipo === 'laser' ? 18 : 10;
+      if (b.tipo === 'laser') {
+        ctx.fillRect(b.x, b.y, b.w, b.h);
+        ctx.fillStyle = 'rgba(255,255,255,0.72)';
+        ctx.fillRect(b.x + b.w / 2 - 2, b.y + 4, 4, b.h - 8);
+      } else {
+        ctx.fillRect(b.x, b.y, b.w, b.h);
+      }
       ctx.shadowBlur = 0;
     });
   }
@@ -925,18 +1146,18 @@
     let titulo = fase.nome;
     let texto = fase.descricao;
     if (estado.chefe) {
-      titulo = 'Chefe final';
-      texto = 'Desvie dos tiros e ataque o núcleo da nave-mãe.';
+      titulo = 'Chefão final';
+      texto = 'Desvie dos lasers e ataque o núcleo da nave imperadora.';
     }
 
     ctx.save();
     ctx.globalAlpha = Math.min(1, estado.banner / 0.6);
-    ctx.fillStyle = 'rgba(2, 3, 10, 0.56)';
-    ctx.fillRect(0, H / 2 - 78, W, 138);
-    ctx.fillStyle = fase.cor;
-    ctx.font = 'bold 42px Arial';
+    ctx.fillStyle = 'rgba(2, 3, 10, 0.58)';
+    ctx.fillRect(0, H / 2 - 80, W, 142);
+    ctx.fillStyle = estado.chefe ? '#ff5f7a' : fase.cor;
+    ctx.font = 'bold 40px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText(titulo, W / 2, H / 2 - 18);
+    ctx.fillText(titulo, W / 2, H / 2 - 20);
     ctx.fillStyle = '#f4f7ff';
     ctx.font = '20px Arial';
     ctx.fillText(texto, W / 2, H / 2 + 22);
@@ -983,18 +1204,69 @@
 
     const ativar = (evento) => {
       evento.preventDefault();
+      botao.classList.add('pressionado');
       estado.teclado[propriedade] = true;
       iniciarAudio();
+      try {
+        botao.setPointerCapture(evento.pointerId);
+      } catch (erro) {
+        // O navegador pode não permitir captura em alguns eventos; o controle continua funcionando.
+      }
     };
+
     const desativar = (evento) => {
-      evento.preventDefault();
+      if (evento) evento.preventDefault();
+      botao.classList.remove('pressionado');
       estado.teclado[propriedade] = false;
     };
 
     botao.addEventListener('pointerdown', ativar);
     botao.addEventListener('pointerup', desativar);
     botao.addEventListener('pointercancel', desativar);
-    botao.addEventListener('pointerleave', desativar);
+    botao.addEventListener('lostpointercapture', desativar);
+    botao.addEventListener('contextmenu', (evento) => evento.preventDefault());
+  }
+
+  function xDoCanvas(evento) {
+    const rect = canvas.getBoundingClientRect();
+    const escalaX = W / rect.width;
+    return limitar((evento.clientX - rect.left) * escalaX, 0, W);
+  }
+
+  function configurarArrasteNoCanvas() {
+    canvas.addEventListener('pointerdown', (evento) => {
+      if (evento.pointerType === 'mouse' || estado.tela !== 'jogando') return;
+      evento.preventDefault();
+      iniciarAudio();
+      estado.toque.pointerId = evento.pointerId;
+      estado.toque.alvoX = xDoCanvas(evento);
+      try {
+        canvas.setPointerCapture(evento.pointerId);
+      } catch (erro) {
+        // Alguns navegadores móveis não capturam o ponteiro, mas ainda disparam pointermove.
+      }
+    });
+
+    canvas.addEventListener('pointermove', (evento) => {
+      if (estado.toque.pointerId !== evento.pointerId || estado.tela !== 'jogando') return;
+      evento.preventDefault();
+      estado.toque.alvoX = xDoCanvas(evento);
+    });
+
+    const encerrar = (evento) => {
+      if (estado.toque.pointerId !== evento.pointerId) return;
+      evento.preventDefault();
+      estado.toque.pointerId = null;
+      estado.toque.alvoX = null;
+    };
+
+    canvas.addEventListener('pointerup', encerrar);
+    canvas.addEventListener('pointercancel', encerrar);
+    canvas.addEventListener('lostpointercapture', () => {
+      estado.toque.pointerId = null;
+      estado.toque.alvoX = null;
+    });
+    canvas.addEventListener('contextmenu', (evento) => evento.preventDefault());
   }
 
   btnComecar.addEventListener('click', () => {
@@ -1007,15 +1279,12 @@
 
   window.addEventListener('keydown', (evento) => tratarTecla(evento, true));
   window.addEventListener('keyup', (evento) => tratarTecla(evento, false));
-  window.addEventListener('blur', () => {
-    estado.teclado.esquerda = false;
-    estado.teclado.direita = false;
-    estado.teclado.tiro = false;
-  });
+  window.addEventListener('blur', limparEntradas);
 
   configurarBotaoTouch('btnEsquerda', 'esquerda');
   configurarBotaoTouch('btnDireita', 'direita');
   configurarBotaoTouch('btnTiro', 'tiro');
+  configurarArrasteNoCanvas();
 
   let ultimoTempo = 0;
   function loop(timestamp) {
@@ -1036,6 +1305,6 @@
   criarEstrelas();
   estado.jogador = criarJogador();
   atualizarHud();
-  mostrarOverlay('Space Invaders', 'Defenda a Terra em 3 fases. Destrua os invasores, colete poderes e derrote a nave-mãe.', 'Começar jogo');
+  mostrarOverlay('Space Invaders', `Defenda a Terra em ${FASES.length} fases. Colete poderes, sobreviva à escolta e derrote o chefão final.`, 'Começar jogo');
   requestAnimationFrame(loop);
 })();

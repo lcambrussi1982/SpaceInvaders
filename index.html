@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Space Invaders - Colégio Estadual Dom Carlos</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -27,7 +27,7 @@
       <div id="overlay" class="overlay">
         <div class="cartao">
           <h2 id="overlayTitulo">Space Invaders</h2>
-          <p id="overlayTexto">Defenda a Terra em 3 fases. Destrua os invasores e derrote a nave-mãe.</p>
+          <p id="overlayTexto">Defenda a Terra em 6 fases. Destrua os invasores e derrote o chefão final.</p>
           <button id="btnComecar" type="button">Começar jogo</button>
         </div>
       </div>
@@ -36,11 +36,13 @@
     <section class="instrucoes">
       <h2>Controles</h2>
       <p><kbd>←</kbd> <kbd>→</kbd> ou <kbd>A</kbd> <kbd>D</kbd> para mover. <kbd>Espaço</kbd> para atirar. <kbd>P</kbd> pausa. <kbd>R</kbd> reinicia.</p>
-      <p>No celular, use os botões abaixo.</p>
+      <p>No celular, use os botões fixos: movimento no canto esquerdo e <strong>ATIRAR</strong> no canto direito. Também dá para arrastar na tela do jogo para mover a nave.</p>
       <div class="controles-touch" aria-label="Controles para celular">
-        <button id="btnEsquerda" type="button">◀</button>
-        <button id="btnTiro" type="button">●</button>
-        <button id="btnDireita" type="button">▶</button>
+        <div class="grupo-movimento" aria-label="Movimento">
+          <button id="btnEsquerda" class="botao-movimento" type="button" aria-label="Mover para esquerda">◀</button>
+          <button id="btnDireita" class="botao-movimento" type="button" aria-label="Mover para direita">▶</button>
+        </div>
+        <button id="btnTiro" class="botao-tiro" type="button" aria-label="Atirar">ATIRAR</button>
       </div>
     </section>
   </main>
